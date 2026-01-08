@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict
 
-from cortex.app import Event
+from cortex.contracts import Event
 
 
 class Intent(str, Enum):

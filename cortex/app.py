@@ -7,10 +7,6 @@ from cortex.core import handle_event
 
 app = FastAPI(title="Nexus Cortex")
 
-# ===================
-#   HTTP
-# ===================
-
 
 @app.post("/event")
 def receive_event(event: Event):

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from cortex.app import Action, ActionType
+from cortex.contracts import Action, ActionType
 
 
 class DecisionLayer:

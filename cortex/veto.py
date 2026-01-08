@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
-from cortex.app import Action
 from cortex.classify import Intent
+from cortex.contracts import Action
 
 
 class VetoLayer:

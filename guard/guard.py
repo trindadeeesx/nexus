@@ -4,7 +4,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from cortex.app import Action, ActionType, GlobalState
+from cortex.contracts import Action, ActionType
+from cortex.state import GlobalState
 
 
 class GuardResultReasons(str, Enum):

@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
-from cortex.app import Action, ActionType, Event
 from cortex.classify import Intent, Topic
+from cortex.contracts import Action, ActionType, Event
 
 
 class BasePolicy:
