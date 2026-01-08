@@ -1,7 +1,11 @@
 from datetime import datetime
 
-from cortex.app import Action, ActionType, Event  # models continuam no app por enquanto
 from cortex.classify import classify_event
+from cortex.contracts import (  # models continuam no app por enquanto
+    Action,
+    ActionType,
+    Event,
+)
 from cortex.decision import DecisionLayer
 from cortex.policies import ChatPolicy, FoodPolicy, PolicyEngine
 from cortex.state import STATE
