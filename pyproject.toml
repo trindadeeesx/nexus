@@ -1,0 +1,30 @@
+[project]
+name = "nexus"
+version = "0.1.0"
+description = "Nexus — Autonomous Home AI Core (Cortex)"
+authors = [
+  { name = "Trindade", email = "trindadesx@proton.me" }
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+
+dependencies = [
+  "pydantic>=2.6",
+  "rich>=13.7",
+  "loguru>=0.7",
+  "fastapi>=0.110",
+  "uvicorn>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "black",
+  "ruff",
+  "mypy"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
