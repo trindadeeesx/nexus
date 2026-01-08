@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from memory.store import MemoryStore
+
 app = FastAPI(title="Nexus Cortex")
 
 # ========================
@@ -266,6 +268,13 @@ class VetoLayer:
         return False
 
 
+#
+#   MEMORY
+#
+
+
+MEMORY = MemoryStore()
+
 # ========================
 #   CORTEX CORE
 # ========================
@@ -273,6 +282,13 @@ class VetoLayer:
 
 def handle_event(event: Event) -> Action:
     STATE.last_event_time = datetime.now()
+
+    text = event.payload.get("text")
+    if text:
+        MEMORY.remember(event.source, text)
+
+    recent_context = MEMORY.recall(event.source)
+    print(recent_context)
 
     classification = classify_event(event)
 
