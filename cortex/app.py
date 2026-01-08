@@ -1,16 +1,13 @@
 # nexus/cortex/app.py
 
 import uuid
-from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from guard.guard import Guard
-from memory.store import MemoryStore
+from cortex.core import handle_event
 
 app = FastAPI(title="Nexus Cortex")
 
@@ -45,77 +42,6 @@ class Action(BaseModel):
     payload: Dict[str, Any]
     confidence: float = 0.10
     priority: int = 0
-
-
-POLICY_ENGINE = PolicyEngine(
-    policies=[
-        ChatPolicy(),
-        FoodPolicy(),
-    ]
-)
-
-
-DECISION_LAYER = DecisionLayer()
-
-# ========================
-#   VETO LAYER
-# ========================
-
-
-#
-#   MEMORY
-#
-
-
-MEMORY = MemoryStore()
-
-# ========================
-#   CORTEX CORE
-# ========================
-
-
-def handle_event(event: Event) -> Action:
-    STATE.last_event_time = datetime.now()
-
-    text = event.payload.get("text")
-    if text:
-        MEMORY.remember(event.source, text)
-
-    recent_context = MEMORY.recall(event.source)
-    print(recent_context)
-
-    classification = classify_event(event)
-
-    proposed_actions = POLICY_ENGINE.run(event, classification)
-    final_action = DECISION_LAYER.decide(proposed_actions)
-
-    if not final_action:
-        return Action(
-            type=ActionType.LOG,
-            target="system",
-            payload={"info": "no action decided"},
-        )
-
-    guard = Guard()
-    guard_result = guard.check(final_action, STATE)
-
-    if not guard_result.allowed:
-        return Action(
-            type=ActionType.LOG,
-            target="system",
-            payload={"blocked_by": guard_result.reason},
-        )
-
-    veto = VetoLayer()
-    if veto.veto(final_action, classification):
-        return Action(
-            type=ActionType.LOG,
-            target="system",
-            payload={"vetoed": True},
-        )
-
-    STATE.last_action_time = datetime.now()
-    return final_action
 
 
 # ===================
