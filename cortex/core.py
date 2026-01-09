@@ -12,6 +12,7 @@ from cortex.state import STATE
 from cortex.veto import VetoLayer
 from guard.guard import Guard
 from memory.store import MemoryStore
+from oracle.observer import ActionResult, Oracle
 
 # ========================
 #   ENGINES SINGLETONS
@@ -26,6 +27,8 @@ POLICY_ENGINE = PolicyEngine(
 
 DECISION_LAYER = DecisionLayer()
 MEMORY = MemoryStore()
+
+ORACLE = Oracle()
 
 
 # ========================
@@ -55,6 +58,13 @@ def handle_event(event: Event) -> Action:
     final_action = DECISION_LAYER.decide(proposed_actions)
 
     if not final_action:
+        ORACLE.observe(
+            event=event,
+            action=Action.no_op("no_action"),
+            result=ActionResult.IGNORED,
+            metadata={"reason": "no_action"},
+        )
+
         return Action(
             type=ActionType.LOG,
             target="system",
@@ -75,6 +85,13 @@ def handle_event(event: Event) -> Action:
     # ---- Veto ----
     veto = VetoLayer()
     if veto.veto(final_action, classification):
+        ORACLE.observe(
+            event=event,
+            action=final_action,
+            result=ActionResult.IGNORED,
+            metadata={"reason": "veto"},
+        )
+
         return Action(
             type=ActionType.LOG,
             target="system",
@@ -82,4 +99,11 @@ def handle_event(event: Event) -> Action:
         )
 
     STATE.last_action_time = datetime.now()
+
+    ORACLE.observe(
+        event=event,
+        action=final_action,
+        result=ActionResult.SUCCESS,  # por enquanto sempre sucesso
+    )
+
     return final_action

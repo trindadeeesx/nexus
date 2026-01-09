@@ -30,3 +30,13 @@ class Action(BaseModel):
     payload: Dict[str, Any]
     confidence: float = 0.10
     priority: int = 0
+
+    @classmethod
+    def no_op(cls, reason: str | None = None) -> "Action":
+        return cls(
+            type=ActionType.NO_OP,
+            target="system",
+            payload={"reason": reason} if reason else {},
+            confidence=0.0,
+            priority=-1,
+        )
