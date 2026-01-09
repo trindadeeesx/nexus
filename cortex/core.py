@@ -10,9 +10,11 @@ from cortex.decision import DecisionLayer
 from cortex.policies import ChatPolicy, FoodPolicy, PolicyEngine
 from cortex.state import STATE
 from cortex.veto import VetoLayer
+from echo.echo import Echo
 from guard.guard import Guard
 from memory.store import MemoryStore
-from oracle.observer import ActionResult, Oracle
+from oracle.observer import ActionResult
+from oracle.service import OracleService
 
 # ========================
 #   ENGINES SINGLETONS
@@ -28,8 +30,8 @@ POLICY_ENGINE = PolicyEngine(
 DECISION_LAYER = DecisionLayer()
 MEMORY = MemoryStore()
 
-ORACLE = Oracle()
-
+ORACLE = OracleService()
+ECHO = Echo()
 
 # ========================
 #   CORE ORCHESTRATION
@@ -100,10 +102,11 @@ def handle_event(event: Event) -> Action:
 
     STATE.last_action_time = datetime.now()
 
+    result = ECHO.execute(final_action)
+
     ORACLE.observe(
         event=event,
         action=final_action,
-        result=ActionResult.SUCCESS,  # por enquanto sempre sucesso
+        result=result,  # por enquanto sempre sucesso
     )
-
     return final_action

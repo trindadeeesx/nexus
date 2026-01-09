@@ -1,19 +1,14 @@
 from datetime import datetime
-from enum import Enum
 from typing import Any, Dict
 
 from cortex.contracts import Action, Event
+from oracle.models import ActionResult, OracleRecord
+from oracle.storage import OracleStorage
 
 
-class ActionResult(str, Enum):
-    SUCCESS = "success"
-    IGNORED = "ignored"
-    FAILED = "failed"
-
-
-class Oracle:
-    def __init__(self):
-        self.history = []
+class OracleObserver:
+    def __init__(self, storage: OracleStorage):
+        self.storage = storage
 
     def observe(
         self,
@@ -22,25 +17,24 @@ class Oracle:
         result: ActionResult,
         metadata: Dict[str, Any] | None = None,
     ):
-        record = {
-            "ts": datetime.now(),
-            "event": event.type,
-            "source": event.source,
-            "action": action.type,
-            "target": action.target,
-            "confidence": action.confidence,
-            "priority": action.priority,
-            "result": result,
-            "meta": metadata or {},
-        }
+        record = OracleRecord(
+            ts=datetime.now(),
+            event_type=event.type,
+            source=event.source,
+            action_type=action.type,
+            target=action.target,
+            confidence=action.confidence,
+            priority=action.priority,
+            result=result,
+            metadata=metadata,
+        )
 
-        self.history.append(record)
-        self._learn(record)
+        self.storage.save(record)
+        self._log(record)
 
-    def _learn(self, record: Dict[str, Any]):
+    def _log(self, record: OracleRecord):
         print(
-            "[ORACLE]",
-            record["action"],
-            record["result"],
-            record["confidence"],
+            f"[ORACLE] action={record.action_type} "
+            f"result={record.result} "
+            f"confidence={record.confidence}"
         )
