@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from cortex.contracts import Action, ActionType
+from cortex.contracts import Action, ActionType, Event, EventType
 from cortex.state import GlobalState
 
 
@@ -12,6 +12,7 @@ class GuardResultReasons(str, Enum):
     CONFIDENCE_TOO_LOW = ("confidence_too_low",)
     COOLDOWN_ACTIVE = "cooldown_active"
     SILENT_HOURS = "silent_hours"
+    VOICE_WITHOUT_HOTWORD = "voice_without_hotword"
 
 
 class GuardResult(BaseModel):
@@ -24,8 +25,16 @@ class Guard:
     COOLDOWN_SECONDS = 5
     SILENT_HOURS = range(0, 7)
 
-    def check(self, action: Action, state: GlobalState) -> GuardResult:
+    def check(
+        self, action: Action, state: GlobalState, event: Event | None = None
+    ) -> GuardResult:
         now = datetime.now()
+
+        if event and event.type == EventType.VOICE:
+            if not event.payload.get("invoked_by_hotword"):
+                return GuardResult(
+                    allowed=False, reason=GuardResultReasons.VOICE_WITHOUT_HOTWORD
+                )
 
         if action.confidence < self.MIN_CONFIDENCE:
             return GuardResult(
