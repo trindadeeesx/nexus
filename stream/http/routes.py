@@ -1,18 +1,15 @@
 import uuid
 
-from fastapi import FastAPI
+from fastapi import APIRouter, Request
 
 from cortex.contracts import Event
 from cortex.core import handle_event
-from oracle.service import OracleService
 
-app = FastAPI(title="Nexus Cortex")
-
-ORACLE_SERVICE = OracleService()
+router = APIRouter()
 
 
-@app.post("/event")
-def receive_event(event: Event):
+@router.post("/event")
+def receive_event(event: Event, request: Request):
     if not event.id:
         event.id = str(uuid.uuid4())
 
@@ -24,9 +21,9 @@ def receive_event(event: Event):
     }
 
 
-@app.get("/oracle/metrics")
-def oracle_metrics():
-    metrics = ORACLE_SERVICE.metrics()
+@router.get("/oracle/metrics")
+def oracle_metrics(request: Request):
+    metrics = request.app.state.oracle.oracle.metrics()
     return {
         "success_rate": metrics.success_rate(),
         "average_confidence": metrics.average_confidence(),
@@ -34,9 +31,9 @@ def oracle_metrics():
     }
 
 
-@app.get("/oracle/insights")
-def oracle_insights():
-    insights = ORACLE_SERVICE.analyze()
+@router.get("/oracle/insights")
+def oracle_insights(request: Request):
+    insights = request.app.state.oracle.analyze()
     return [
         {
             "ts": i.ts,
@@ -50,9 +47,9 @@ def oracle_insights():
     ]
 
 
-@app.get("/oracle/history")
-def oracle_history(limit: int = 100):
-    history = ORACLE_SERVICE.storage.load(limit=limit)
+@router.get("/oracle/history")
+def oracle_history(request: Request, limit: int = 100):
+    history = request.app.state.oracle.storage.load(limit=limit)
     return [
         {
             "ts": r.ts,
