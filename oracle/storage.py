@@ -8,7 +8,7 @@ from oracle.observer import ActionResult
 
 
 class OracleStorage:
-    def __init__(self, path: str = "oracle.db"):
+    def __init__(self, path: Path = Path("oracle.db")):
         self.db_path = Path(path)
         self._init_db()
 

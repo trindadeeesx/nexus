@@ -18,5 +18,4 @@ class OracleService:
         return analyzer.analyze()
 
     def metrics(self):
-        history = self.storage.load()
-        return OracleMetrics(history)
+        return OracleMetrics(self.storage.db_path)

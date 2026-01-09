@@ -1,11 +1,12 @@
 import sqlite3
 from collections import Counter
+from pathlib import Path
 
 from oracle.models import ActionResult
 
 
 class OracleMetrics:
-    def __init__(self, db_path: str = "oracle.db"):
+    def __init__(self, db_path: Path = Path("oracle.db")):
         self.db_path = db_path
 
     def success_rate(self) -> float:
