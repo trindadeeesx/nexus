@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Request
+from pydantic import BaseModel
 
 from cortex.contracts import Event
 from cortex.core import handle_event
@@ -23,7 +24,7 @@ def receive_event(event: Event, request: Request):
 
 @router.get("/oracle/metrics")
 def oracle_metrics(request: Request):
-    metrics = request.app.state.oracle.oracle.metrics()
+    metrics = request.app.state.oracle.metrics()
     return {
         "success_rate": metrics.success_rate(),
         "average_confidence": metrics.average_confidence(),
@@ -63,3 +64,44 @@ def oracle_history(request: Request, limit: int = 100):
         }
         for r in history
     ]
+
+
+@router.get("/oracle/feedback")
+def oracle_feedback(request: Request):
+    actions = request.app.state.oracle.feedback()
+    return [
+        {
+            "index": idx,
+            "kind": fa.kind,
+            "description": fa.description,
+            "severity": fa.severity,
+            "metadata": fa.metadata,
+            "approved": None,  # inicialmente sem aprovação
+        }
+        for idx, fa in enumerate(actions)
+    ]
+
+
+class FeedbackApproval(BaseModel):
+    index: int  # índice da ação na lista retornada
+    approved: bool
+
+
+@router.post("/oracle/feedback/approve")
+def approve_feedback(request: Request, body: FeedbackApproval):
+    """
+    Aprova ou rejeita uma ação de feedback pelo índice
+    """
+    actions = request.app.state.oracle.feedback()
+    if body.index < 0 or body.index >= len(actions):
+        return {"error": "Índice inválido"}
+
+    fa = actions[body.index]
+    fa.approve(body.approved)
+
+    return {
+        "index": body.index,
+        "approved": body.approved,
+        "kind": fa.kind,
+        "description": fa.description,
+    }

@@ -48,7 +48,7 @@ def handle_event(event: Event) -> Action:
 
     recent_context = MEMORY.recall(event.source)
     # futuramente isso entra no prompt / contexto
-    # print(recent_context)
+    print(recent_context)
 
     # ---- Classification ----
     classification = classify_event(event)
