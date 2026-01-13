@@ -1,7 +1,29 @@
+import time
+import uuid
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
+
+
+@dataclass
+class ConversationEvent:
+    event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: float = field(default_factory=time.time)
+
+    # origem
+    stream: str = ""  # terminal | http | whatsapp | telegram | lumen
+    user_id: str = ""  # identificador único dentro da stream
+    session_id: Optional[str] = None
+
+    # intenção
+    agent_hint: Optional[str] = None  # lucia | dominus | None
+    modality: str = "text"  # text | voice | image
+
+    # conteúdo
+    content: Any = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class EventType(str, Enum):

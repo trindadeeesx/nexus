@@ -15,3 +15,10 @@ class Echo:
             return ActionResult.SUCCESS
 
         return ActionResult.FAILED
+
+    def respond(self, agent: str, text: str) -> str:
+        if agent == "lucia":
+            return f"[LUCIA] {text}"
+        if agent == "dominus":
+            return f"[DOMINUS] {text}"
+        return "[UNKNOWN] Não sei quem sou."
