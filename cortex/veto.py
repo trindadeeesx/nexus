@@ -10,8 +10,10 @@ class VetoLayer:
         action: Action,
         classification: Dict[str, Any],
     ) -> bool:
-        # exemplo: não interromper conversa casual
-        if classification["intent"] == Intent.CHAT and action.priority < 5:
+        if (
+            classification["intent"] == Intent.CHAT
+            and action.priority < 5
+            and classification["confidence"] < 0.7
+        ):
             return True
-
         return False
