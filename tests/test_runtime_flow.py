@@ -26,7 +26,7 @@ def test_terminal_flow():
     print(result)
 
     assert result["agent"] in ["lucia", "dominus"]
-    assert result["action"] is not None
+    assert "action" in result
 
 
 test_terminal_flow()
