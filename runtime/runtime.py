@@ -1,4 +1,5 @@
 from datetime import datetime
+from this import s
 from typing import Any, Dict
 
 from cortex.classify import classify_event
@@ -56,28 +57,36 @@ class NexusRuntime:
             user_id=user_id,
             stream=stream,
         )
+        session = self.sessions.get_session(user_id, stream)
 
         # 2. Roteamento
-        agent = self.router.route(convo)
+        agent_name = self.router.route(convo)
+        agent = self.ctx.agents.get(agent_name)
 
-        # 3. Classificação
-        classification = classify_event(event)
+        # classification = classify_event(event)
+        # actions = self.policy_engine.run(event, classification)
+        # action = self.decision_layer.decide(actions)
 
-        # 4. Políticas
-        actions = self.policy_engine.run(event, classification)
+        if not agent:
+            return {"agent": None, "action": None}
 
-        # 5. Decisão
-        action = self.decision_layer.decide(actions)
-        if not action:
-            return {"agent": agent, "action": None}
+        if not session:
+            session = self.sessions.start_session(
+                user_id=user_id, stream=stream, agent=agent_name
+            )
+
+        action = agent.think(convo, session)
+
+        if not action or action.type == ActionType.NO_OP:
+            return {"agent": agent_name, "action": None}
 
         # 6. Veto
-        if self.veto.veto(action, classification):
+        if self.veto.veto(action, {}):
             self.oracle.observe(event, action, "IGNORED", {"vetoed": True})
             return {"agent": agent, "action": None}
 
         # 7. Guard
-        guard_result = self.guard.check(action, self.ctx.global_state, event)
+        guard_result = self.guard.check(action, self.global_state, event)
         if not guard_result.allowed:
             self.oracle.observe(
                 event, action, "BLOCKED", {"reason": guard_result.reason}
@@ -91,9 +100,6 @@ class NexusRuntime:
         self.global_state.last_action_time = datetime.now()
 
         # Oracle
-        self.oracle.observe(event, action, result)
-
-        # 9. Oracle
         self.oracle.observe(event, action, result)
 
         # 10. Memória

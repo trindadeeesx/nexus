@@ -5,13 +5,15 @@ from cortex.contracts import Action, ActionType
 class DominusAgent(Agent):
     name = "dominus"
 
-    def handle(self, action: Action) -> Action:
-        if action.type == ActionType.SEND_MESSAGE:
+    def think(self, convo, session):
+        text = convo.content.lower()
+
+        if "ligar computador" in text:
             return Action(
-                type=ActionType.SEND_MESSAGE,
-                target=action.target,
-                payload={"text": f"Dominus executou: {action.payload.get('text')}"},
+                type=ActionType.LOG,
+                target="system",
+                payload={"text": "Comando para ligar computador recebido"},
                 confidence=0.95,
             )
 
-        return action
+        return Action.no_op("dominus_no_intent")
